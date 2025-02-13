@@ -3,7 +3,6 @@ mod banner;
 use clap::Parser;
 use indicatif::{ParallelProgressIterator, ProgressStyle};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use sha256::try_digest;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
@@ -49,7 +48,13 @@ fn search_path_for_files_recursively(path: &String, max_depth: i16) -> Vec<PathB
 fn main() {
     let args = Args::parse();
 
+    #[cfg(feature = "sha256")]
+    let checksum_calculator="sha256";
+    #[cfg(not(feature = "sha256"))]
+    let checksum_calculator="crc32";
+
     print_banner();
+    println!("Using {} for checksums", checksum_calculator.cyan().bold());
     println!("Old folder: {}", args.old_folder.cyan().bold());
     println!("New folder: {}", args.new_folder.cyan().bold());
     println!("\n");
@@ -59,7 +64,7 @@ fn main() {
 
     let mut old_map = BTreeMap::new();
 
-    let old_shasums = create_shasums(&old_files, "Calculating shasums for old files".to_owned());
+    let old_shasums = create_checksums(&old_files, "Calculating shasums for old files".to_owned());
     for i in 0..old_files.len() {
         old_map.insert(
             old_files
@@ -76,7 +81,7 @@ fn main() {
     let mut new_map = BTreeMap::new();
 
     let new_shasums: Vec<String> =
-        create_shasums(&new_files, "Calculating shasums for new files".to_owned());
+        create_checksums(&new_files, "Calculating shasums for new files".to_owned());
     for i in 0..new_files.len() {
         new_map.insert(
             new_shasums.get(i).unwrap(),
@@ -100,9 +105,20 @@ fn main() {
     println!("Missing files: {:#?}", missing_files);
 }
 
-fn create_shasums(old_files: &Vec<PathBuf>, message: String) -> Vec<String> {
+#[cfg(not(feature = "sha256"))]
+fn create_checksum(d: &PathBuf) -> String {
+    let data = fs::read(d).unwrap();
+    crc32fast::hash(data.as_slice()).to_string()
+}
+
+#[cfg(feature = "sha256")]
+fn create_checksum(d: &PathBuf) -> String {
+    sha256::try_digest(d.as_path()).unwrap()
+}
+
+fn create_checksums(old_files: &Vec<PathBuf>, message: String) -> Vec<String> {
     let style = ProgressStyle::with_template(
-        "{msg}: {wide_bar:.cyan/blue} {pos:>7}/{len}",
+        "{msg}: {wide_bar:.cyan/blue} {pos:>7}/{len} ({per_sec})",
     )
     .unwrap();
 
@@ -110,7 +126,7 @@ fn create_shasums(old_files: &Vec<PathBuf>, message: String) -> Vec<String> {
         .par_iter()
         .progress_with_style(style)
         .with_message(message)
-        .map(|d| try_digest(d.as_path()).unwrap())
+        .map(create_checksum)
         .collect();
     old_shasums
 }
