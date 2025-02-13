@@ -1,10 +1,14 @@
+mod banner;
+
 use clap::Parser;
-use indicatif::ParallelProgressIterator;
+use indicatif::{ParallelProgressIterator, ProgressStyle};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use sha256::try_digest;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
+use owo_colors::OwoColorize;
+use crate::banner::print_banner;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -45,13 +49,17 @@ fn search_path_for_files_recursively(path: &String, max_depth: i16) -> Vec<PathB
 fn main() {
     let args = Args::parse();
 
+    print_banner();
+    println!("Old folder: {}", args.old_folder.cyan().bold());
+    println!("New folder: {}", args.new_folder.cyan().bold());
+    println!("\n");
+
     let old_files = search_path_for_files_recursively(&args.old_folder, args.max_depth);
     let new_files = search_path_for_files_recursively(&args.new_folder, args.max_depth);
 
-    println!("Calculating shasums for old and new files...");
     let mut old_map = BTreeMap::new();
 
-    let old_shasums = create_shasums(&old_files);
+    let old_shasums = create_shasums(&old_files, "Calculating shasums for old files".to_owned());
     for i in 0..old_files.len() {
         old_map.insert(
             old_files
@@ -67,7 +75,8 @@ fn main() {
 
     let mut new_map = BTreeMap::new();
 
-    let new_shasums: Vec<String> = create_shasums(&new_files);
+    let new_shasums: Vec<String> =
+        create_shasums(&new_files, "Calculating shasums for new files".to_owned());
     for i in 0..new_files.len() {
         new_map.insert(
             new_shasums.get(i).unwrap(),
@@ -91,10 +100,16 @@ fn main() {
     println!("Missing files: {:#?}", missing_files);
 }
 
-fn create_shasums(old_files: &Vec<PathBuf>) -> Vec<String> {
+fn create_shasums(old_files: &Vec<PathBuf>, message: String) -> Vec<String> {
+    let style = ProgressStyle::with_template(
+        "{msg}: {wide_bar:.cyan/blue} {pos:>7}/{len}",
+    )
+    .unwrap();
+
     let old_shasums: Vec<String> = old_files
         .par_iter()
-        .progress_count(old_files.len() as u64)
+        .progress_with_style(style)
+        .with_message(message)
         .map(|d| try_digest(d.as_path()).unwrap())
         .collect();
     old_shasums
