@@ -1,5 +1,5 @@
 # Backup Checker
-Check if all files where backed up. Even finds renamed files (uses shasums).
+Check if all files where backed up by comparing their checksums.
 
 ## Usage
 To check if all files were copied from the old to the new directory:
