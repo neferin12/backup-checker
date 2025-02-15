@@ -12,7 +12,7 @@ backup-checker --help
 ```
 ## Build
 ```bash
-cross build -r
+cargo build -r
 ```
 ### Cross Compilation
 ```bash
