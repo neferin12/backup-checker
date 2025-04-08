@@ -1,0 +1,32 @@
+# Maintainer: Julian Pollinger <julian@pollinger.dev>
+
+pkgname=('backup-checker')
+pkgver=0.3.1
+pkgrel=1
+pkgdesc='Check if all files where backed up by comparing their checksums.'
+arch=('x86_64')
+url='https://github.com/neferin12/backup-checker/'
+license=('MIT')
+depends=()
+makedepends=('cargo')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('06f2b4df3b0f4a19a302aea45ff9d7bc9e5f4ed434d566b3bf00512118d6b22f')
+
+prepare() {
+    cd "$pkgname-$pkgver" || exit 1
+    export RUSTUP_TOOLCHAIN=stable
+    cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+    cd "$pkgname-$pkgver" || exit 1
+    export RUSTUP_TOOLCHAIN=stable
+    export CARGO_TARGET_DIR=target
+    cargo build --frozen --release --all-features
+}
+
+package() {
+    cd "$pkgname-$pkgver" || exit 1
+    install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+    install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
+}
