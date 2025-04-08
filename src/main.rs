@@ -166,7 +166,7 @@ fn get_checksum_function(generator: &ChecksumGenerator) -> for<'a> fn(&'a PathBu
     }
 }
 
-fn create_checksums(old_files: &Vec<PathBuf>, message: String, generator: &ChecksumGenerator) -> Vec<String> {
+fn create_checksums(files: &Vec<PathBuf>, message: String, generator: &ChecksumGenerator) -> Vec<String> {
     let style = ProgressStyle::with_template(
         "{msg}: {wide_bar:.cyan/blue} {pos:>7}/{len} ({per_sec})",
     )
@@ -174,11 +174,10 @@ fn create_checksums(old_files: &Vec<PathBuf>, message: String, generator: &Check
 
     let check_fn = get_checksum_function(generator);
 
-    let old_shasums: Vec<String> = old_files
+    files
         .par_iter()
         .progress_with_style(style)
         .with_message(message)
         .map(check_fn)
-        .collect();
-    old_shasums
+        .collect()
 }
