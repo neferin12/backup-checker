@@ -1,0 +1,12 @@
+pkgbase = backup-checker
+	pkgdesc = Check if all files where backed up by comparing their checksums.
+	pkgver = 0.3.1
+	pkgrel = 1
+	url = https://github.com/neferin12/backup-checker/
+	arch = x86_64
+	license = MIT
+	makedepends = cargo
+	source = backup-checker-0.3.1.tar.gz::https://github.com/neferin12/backup-checker//archive/refs/tags/v0.3.1.tar.gz
+	sha256sums = 06f2b4df3b0f4a19a302aea45ff9d7bc9e5f4ed434d566b3bf00512118d6b22f
+
+pkgname = backup-checker
