@@ -1,7 +1,16 @@
 [package]
 name = "backup-checker"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2021"
+
+[lib]
+name = "backup_checker"
+path = "src/lib.rs"
+
+[[bin]]
+name = "backup-checker"
+path = "src/main.rs"
+
 
 [dependencies]
 clap = { version = "4.5.29", features = ["derive"] }
