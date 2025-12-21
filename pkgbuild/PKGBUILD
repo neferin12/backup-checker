@@ -1,7 +1,7 @@
 # Maintainer: Julian Pollinger <julian@pollinger.dev>
 
 pkgname=('backup-checker')
-pkgver=0.3.2
+pkgver=0.3.3
 pkgrel=1
 pkgdesc='Check if all files where backed up by comparing their checksums.'
 arch=('x86_64')
@@ -10,7 +10,7 @@ license=('MIT')
 depends=()
 makedepends=('cargo')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('35b45a67d160dc211aa5aa8fcd7f1a69c185d5de6b17f73d3f9e0798a108b8cb')
+sha256sums=('210f20abf0437b45c01cd8fc42c9febcefe6d8d71efade3ea30c0079fa6c4706')
 
 prepare() {
     cd "$pkgname-$pkgver" || exit 1
