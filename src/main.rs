@@ -1,18 +1,20 @@
 mod banner;
+use crate::banner::print_banner;
+use backup_checker::ChecksumGenerator;
 use clap::Parser;
 use owo_colors::OwoColorize;
-use backup_checker::ChecksumGenerator;
-use crate::banner::print_banner;
-
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     #[arg(short, long)]
-    old_folder: String,
+    old_folder: Option<String>,
 
     #[arg(short, long)]
-    new_folder: String,
+    new_folder: Option<String>,
+
+    #[arg(short = 'f', long)]
+    duplicates_folder: Option<String>,
 
     #[arg(short = 'd', long, default_value = "1000")]
     max_depth: i16,
@@ -21,18 +23,43 @@ struct Args {
     generator: ChecksumGenerator,
 }
 
-
 fn main() {
     let args = Args::parse();
 
     print_banner();
-    println!("Using {} for checksums", backup_checker::get_generator_name(&args.generator).cyan().bold());
-    println!("Old folder: {}", args.old_folder.cyan().bold());
-    println!("New folder: {}", args.new_folder.cyan().bold());
-    println!("\n");
+    println!(
+        "Using {} for checksums",
+        backup_checker::get_generator_name(&args.generator)
+            .cyan()
+            .bold()
+    );
 
-    let missing_files = backup_checker::check_files(&args.old_folder, &args.new_folder, args.max_depth, &args.generator, true);
+    if let Some(folder) = args.duplicates_folder {
+        println!("Duplicates folder: {}", folder.cyan().bold());
+        println!();
 
-    println!("Missing files: {:#?}", missing_files);
+        let duplicate_files =
+            backup_checker::find_duplicate_files(&folder, args.max_depth, &args.generator, true);
+
+        println!("Duplicate files: {:#?}", duplicate_files);
+    } else if let (Some(old_folder), Some(new_folder)) = (args.old_folder, args.new_folder) {
+        println!("Old folder: {}", old_folder.cyan().bold());
+        println!("New folder: {}", new_folder.cyan().bold());
+        println!();
+
+        let missing_files = backup_checker::check_files(
+            &old_folder,
+            &new_folder,
+            args.max_depth,
+            &args.generator,
+            true,
+        );
+
+        println!("Missing files: {:#?}", missing_files);
+    } else {
+        eprintln!(
+            "Either --duplicates-folder or both --old-folder and --new-folder must be provided."
+        );
+        std::process::exit(2);
+    }
 }
-

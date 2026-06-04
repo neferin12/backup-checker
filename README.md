@@ -6,6 +6,10 @@ To check if all files were copied from the old to the new directory:
 ```bash
 backup-checker [OPTIONS] --old-folder <OLD_FOLDER> --new-folder <NEW_FOLDER>
 ```
+To scan a directory recursively for duplicate files:
+```bash
+backup-checker [OPTIONS] --duplicates-folder <FOLDER>
+```
 To get all available options:
 ```bash
 backup-checker --help
