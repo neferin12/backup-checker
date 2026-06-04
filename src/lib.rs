@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
 use indicatif::{ParallelProgressIterator, ProgressStyle};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use std::fs;
 use std::path::PathBuf;
 
-#[derive(clap::ValueEnum, Clone, Default, Debug, Serialize)]
+#[derive(clap::ValueEnum, Clone, Default, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ChecksumGenerator {
     #[default]
